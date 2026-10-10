@@ -1,0 +1,19 @@
+{
+  "name": "pomoai-cli",
+  "version": "0.0.0",
+  "description": "Generate images and videos through the PomoAi API from the command line",
+  "license": "MIT",
+  "homepage": "https://github.com/PomoAi-ai/pomoai-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PomoAi-ai/pomoai-cli.git"
+  },
+  "keywords": ["pomoai", "cli", "image", "video", "ai"],
+  "bin": {
+    "pomoai": "bin/pomoai.js"
+  },
+  "files": ["bin/"],
+  "engines": {
+    "node": ">=18"
+  }
+}

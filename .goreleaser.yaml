@@ -1,0 +1,59 @@
+version: 2
+
+project_name: pomoai
+
+builds:
+  - main: ./cmd/pomoai
+    binary: pomoai
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/PomoAi-ai/pomoai-cli.version={{ .Version }}
+      - -X github.com/PomoAi-ai/pomoai-cli.commit={{ .ShortCommit }}
+      - -X github.com/PomoAi-ai/pomoai-cli.date={{ .Date }}
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - formats: [tar.gz]
+    # No version in the name so install.sh can use releases/latest/download/.
+    name_template: "pomoai_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+release:
+  prerelease: auto
+
+homebrew_casks:
+  - name: pomoai
+    binaries: [pomoai]
+    homepage: https://github.com/PomoAi-ai/pomoai-cli
+    description: Generate images and videos through the PomoAi API
+    repository:
+      owner: PomoAi-ai
+      name: homebrew-tap
+      # Push via a repo-scoped deploy key (org disables PATs here); the private
+      # key lives in the HOMEBREW_TAP_KEY Actions secret.
+      git:
+        url: ssh://git@github.com/PomoAi-ai/homebrew-tap.git
+        private_key: "{{ .Env.HOMEBREW_TAP_KEY }}"
+    # Prerelease tags (v0.1.0-rc.1) do not update the tap.
+    skip_upload: auto
+    hooks:
+      post:
+        # Binaries are not signed/notarized; drop the quarantine bit.
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/pomoai"]
+          end

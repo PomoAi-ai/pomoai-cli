@@ -1,0 +1,11 @@
+{
+  "name": "pomoai",
+  "owner": { "name": "PomoAi" },
+  "plugins": [
+    {
+      "name": "pomoai",
+      "source": "./",
+      "description": "Generate or edit images and create videos through the PomoAi API with the pomoai CLI."
+    }
+  ]
+}

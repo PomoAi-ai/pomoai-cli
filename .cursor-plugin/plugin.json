@@ -1,0 +1,11 @@
+{
+  "name": "pomoai",
+  "description": "Generate or edit images and create videos through the PomoAi API with the pomoai CLI.",
+  "version": "0.1.0",
+  "author": { "name": "PomoAi" },
+  "homepage": "https://github.com/PomoAi-ai/pomoai-cli",
+  "repository": "https://github.com/PomoAi-ai/pomoai-cli",
+  "license": "MIT",
+  "keywords": ["image", "video", "pomoai", "cli"],
+  "skills": "./skills/"
+}
