@@ -4,18 +4,14 @@
 for both people and AI agents (Claude Code, Codex, Cursor, …).
 
 ```sh
-npm i -g pomoai-cli
-export POMOAI_API_KEY=sk-...        # or run `pomoai login`
-pomoai image create --model gpt-image-1 --prompt "a red fox in snow" --json
+npm i -g https://github.com/PomoAi-ai/pomoai-cli/releases/latest/download/pomoai-cli.tgz
+pomoai login --base-url <API address>     # paste your API key when asked
+pomoai models --kind image
+pomoai image create --model <model-id> --prompt "a red fox in snow"
 ```
 
-The prebuilt binary comes from a platform package
-(`pomoai-cli-{darwin,linux,win32}-{x64,arm64}`) installed as an optional
-dependency. If optional dependencies are disabled, use the install script
-instead:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/PomoAi-ai/pomoai-cli/main/install.sh | sh
-```
+That tarball bundles the prebuilt binaries for macOS, Linux and Windows
+(x64 / arm64). The registry package, once published, instead pulls one
+`pomoai-cli-{darwin,linux,win32}-{x64,arm64}` optional dependency.
 
 Documentation: https://github.com/PomoAi-ai/pomoai-cli

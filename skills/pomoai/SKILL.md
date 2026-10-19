@@ -18,8 +18,8 @@ pomoai version --json
 If the command is missing, install it with one of:
 
 ```sh
+npm i -g https://github.com/PomoAi-ai/pomoai-cli/releases/latest/download/pomoai-cli.tgz   # any OS, Node 18+
 brew install PomoAi-ai/tap/pomoai
-npm i -g pomoai-cli
 curl -fsSL https://raw.githubusercontent.com/PomoAi-ai/pomoai-cli/main/install.sh | sh
 ```
 
@@ -31,7 +31,9 @@ curl -fsSL https://raw.githubusercontent.com/PomoAi-ai/pomoai-cli/main/install.s
   `~/.pomoai/config.json`.**
 - The base URL defaults to `https://www.pomoai.ai`. Only override it
   (`--base-url`, `POMOAI_BASE_URL`) when the user tells you to.
-- On exit code 3, tell the user to set `POMOAI_API_KEY` or run `pomoai login`.
+- On exit code 3, tell the user to create a key at
+  https://www.pomoai.ai/console/token, then set `POMOAI_API_KEY` or run
+  `pomoai login`.
 - Tasks can only be queried with the exact key that submitted them. If the key
   changed, `key_mismatch` (exit 3) is expected.
 

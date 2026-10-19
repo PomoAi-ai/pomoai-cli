@@ -41,8 +41,15 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: npm publish (skipped until NPM_TOKEN is set)
-        run: node scripts/npm-publish.mjs
+      - name: npm tarball on the GitHub Release
+        run: |
+          node scripts/npm-publish.mjs
+          gh release upload "$GITHUB_REF_NAME" dist/npm/pomoai-cli.tgz --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: npm registry publish (skipped until NPM_TOKEN is set)
+        run: node scripts/npm-publish.mjs --publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         if: env.HAS_NPM_TOKEN == 'true'

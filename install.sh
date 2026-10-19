@@ -12,7 +12,7 @@ fail() { echo "pomoai install: $*" >&2; exit 1; }
 case "$(uname -s)" in
   Darwin) os=darwin ;;
   Linux) os=linux ;;
-  *) fail "unsupported OS $(uname -s); on Windows use: npm i -g pomoai-cli" ;;
+  *) fail "unsupported OS $(uname -s); on Windows use: npm i -g https://github.com/PomoAi-ai/pomoai-cli/releases/latest/download/pomoai-cli.tgz" ;;
 esac
 case "$(uname -m)" in
   x86_64 | amd64) arch=amd64 ;;

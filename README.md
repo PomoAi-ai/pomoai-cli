@@ -1,5 +1,7 @@
 # pomoai-cli
 
+[中文说明](README.zh-CN.md)
+
 `pomoai` is a command-line tool for people and AI agents (Claude Code, Codex,
 Cursor, …) to generate images and videos through the PomoAi async task API
 (`/v1/tasks`). It submits a job, waits for it, and saves the result locally.
@@ -9,16 +11,19 @@ JSON line.
 ## Install
 
 ```sh
+npm i -g https://github.com/PomoAi-ai/pomoai-cli/releases/latest/download/pomoai-cli.tgz   # any OS incl. Windows, Node 18+
 brew install PomoAi-ai/tap/pomoai                 # macOS / Linux (Homebrew)
-npm i -g pomoai-cli                              # any platform with Node 18+
 curl -fsSL https://raw.githubusercontent.com/PomoAi-ai/pomoai-cli/main/install.sh | sh
 go install github.com/PomoAi-ai/pomoai-cli/cmd/pomoai@latest   # from source, Go 1.25+
 ```
 
 `install.sh` installs to `~/.local/bin` (override with `POMOAI_INSTALL_DIR`),
 verifies the SHA-256 checksum, and takes `POMOAI_VERSION=0.1.0` to pin a
-version. Windows: use npm, or the zip from
-[Releases](https://github.com/PomoAi-ai/pomoai-cli/releases).
+version. The npm command installs a tarball from the GitHub Release (all
+platforms bundled, no npm registry account involved). Without Node on
+Windows, download the zip from
+[Releases](https://github.com/PomoAi-ai/pomoai-cli/releases) and put
+`pomoai.exe` on your `PATH`.
 
 Agent skill only (Claude Code, Codex, Cursor, …):
 
@@ -31,14 +36,27 @@ In Claude Code you can also install it as a plugin:
 
 ## Quick start
 
-```sh
-export POMOAI_API_KEY=sk-...          # or run `pomoai login` once
+1. Create an API key at <https://www.pomoai.ai/console/token>.
+2. Log in once (the key is verified, then saved to `~/.pomoai/config.json`), or
+   export `POMOAI_API_KEY` instead:
 
-pomoai whoami
-pomoai models --kind image
-pomoai image create --model gpt-image-1 --prompt "a red fox in snow" --out-dir ./out
-pomoai video create --model doubao-seedance-2-0-260128 --prompt "sunrise over the sea" --duration 5
-```
+   ```sh
+   pomoai login
+   pomoai whoami                       # balance + which key is active
+   ```
+
+3. Pick a model and create:
+
+   ```sh
+   pomoai models --kind image          # copy a model id from the list
+   pomoai image create --model <id> --prompt "a red fox in snow" --out-dir ./out
+
+   pomoai models --kind video
+   pomoai video create --model <id> --prompt "sunrise over the sea" --duration 5
+   ```
+
+Every command has examples: `pomoai <command> --help`, e.g.
+`pomoai image create --help`.
 
 ## Commands
 

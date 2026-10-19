@@ -1,8 +1,11 @@
-// Publish pomoai-cli and its 6 platform packages from GoReleaser's dist/.
-// Run from CI after `goreleaser release`; needs GITHUB_REF_NAME (vX.Y.Z) and npm auth.
-// Idempotent: a package version that already exists on the registry is skipped.
+// Build npm packages from GoReleaser's dist/. Run from CI after `goreleaser release`;
+// needs GITHUB_REF_NAME (vX.Y.Z).
+// Always: dist/npm/pomoai-cli.tgz, one package with all 6 binaries, uploaded to the GitHub
+// Release so `npm i -g <release url>` works without the npm registry.
+// With --publish (needs npm auth): also publish pomoai-cli + 6 platform packages to the
+// registry. Idempotent: a package version that already exists there is skipped.
 import { spawnSync } from 'node:child_process';
-import { chmodSync, copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, cpSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,7 +55,7 @@ const platformPkgs = binaries.map((a) => {
     ...meta,
   };
   writeFileSync(join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n');
-  return { name, dir };
+  return { name, dir, key: `${os}-${cpu}` };
 });
 
 const mainDir = join(out, 'cli');
@@ -76,6 +79,18 @@ function publish({ name, dir }) {
   if (r.status !== 0) throw new Error(`npm publish ${name}@${version} failed (exit ${r.status})`);
 }
 
-// Platform packages first so the main package never points at missing versions.
-for (const p of platformPkgs) publish(p);
-publish({ name: mainPkg.name, dir: mainDir });
+// Single-file package: every binary under bin/<os>-<cpu>/, picked by bin/pomoai.js.
+const fatDir = join(out, 'fat');
+cpSync('npm/pomoai-cli', fatDir, { recursive: true });
+for (const p of platformPkgs) cpSync(join(p.dir, 'bin'), join(fatDir, 'bin', p.key), { recursive: true });
+writeFileSync(join(fatDir, 'package.json'), JSON.stringify({ ...JSON.parse(readFileSync(join(fatDir, 'package.json'), 'utf8')), version }, null, 2) + '\n');
+const pack = npm(['pack', '--pack-destination', '..'], { cwd: fatDir });
+if (pack.status !== 0) throw new Error(`npm pack failed: ${pack.stderr}`);
+renameSync(join(out, pack.stdout.trim().split('\n').pop()), join(out, 'pomoai-cli.tgz'));
+console.log(`built ${join(out, 'pomoai-cli.tgz')}`);
+
+if (process.argv.includes('--publish')) {
+  // Platform packages first so the main package never points at missing versions.
+  for (const p of platformPkgs) publish(p);
+  publish({ name: mainPkg.name, dir: mainDir });
+}

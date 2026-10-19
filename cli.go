@@ -128,8 +128,18 @@ func wrap(fn func(cmd *cobra.Command, args []string) error) func(*cobra.Command,
 
 func (a *app) commands() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "pomoai",
-		Short:         "Generate images and videos through the PomoAi async task API",
+		Use:   "pomoai",
+		Short: "Generate images and videos through the PomoAi async task API",
+		Long: `Generate images and videos through the PomoAi async task API.
+
+Get an API key at https://www.pomoai.ai/console/token, then either export
+POMOAI_API_KEY or run "pomoai login" once. Results are kept on the server for
+48 hours; downloaded files stay on disk.`,
+		Example: `  pomoai login
+  pomoai models --kind image
+  pomoai image create --model <id> --prompt "a red fox in snow"
+  pomoai video create --model <id> --prompt "sunrise over the sea" --duration 5
+  pomoai task wait <tsk_id|local_id>       # resume after a timeout or Ctrl-C`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
@@ -223,7 +233,15 @@ func (a *app) loginCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "login",
 		Short: "Save an API key (read from the terminal or stdin) after verifying it",
-		Args:  cobra.NoArgs,
+		Long: `Save an API key after verifying it against the server.
+
+Create a key at https://www.pomoai.ai/console/token. The key is read from a
+hidden prompt, or from the first line of stdin, and saved to
+~/.pomoai/config.json (mode 0600). POMOAI_API_KEY, when set, takes precedence.`,
+		Example: `  pomoai login
+  printf '%s\n' "$KEY" | pomoai login --non-interactive
+  pomoai login --base-url http://localhost:3000     # save a local test gateway`,
+		Args: cobra.NoArgs,
 		RunE: wrap(func(cmd *cobra.Command, _ []string) error {
 			home, err := pomoaiHome()
 			if err != nil {
@@ -389,7 +407,19 @@ func (a *app) imageCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Generate or edit images (blocks until done unless --no-wait)",
-		Args:  cobra.NoArgs,
+		Example: `  # text to image, saved into ./out
+  pomoai image create --model <id> --prompt "a red fox in snow" --size 1024x1024 --out-dir out
+
+  # edit local images (up to 4), optional mask
+  pomoai image create --model <id> --prompt "make it night" --image photo.png --mask mask.png
+
+  # Gemini image models
+  pomoai image create --model <gemini-id> --prompt "a poster" --aspect-ratio 16:9 --image-size 2K
+
+  # submit only, resume later
+  pomoai image create --model <id> --prompt "..." --no-wait
+  pomoai task wait <tsk_id>`,
+		Args: cobra.NoArgs,
 		RunE: wrap(func(cmd *cobra.Command, _ []string) error {
 			if o.model == "" {
 				return usageErr("--model is required")
@@ -421,7 +451,7 @@ func (a *app) imageCreateCmd() *cobra.Command {
 		}),
 	}
 	f := cmd.Flags()
-	f.StringVar(&o.model, "model", "", "model id (see `pomoai models --kind image`)")
+	f.StringVar(&o.model, "model", "", "model id, see: pomoai models --kind image")
 	f.StringVar(&o.prompt, "prompt", "", "prompt text")
 	f.StringVar(&promptFile, "prompt-file", "", "read the prompt from a file, or - for stdin")
 	f.StringArrayVar(&o.images, "image", nil, "reference image file (repeatable, max 4, each <= 50 MiB)")
@@ -519,7 +549,10 @@ func (a *app) taskCmd() *cobra.Command {
 	wait := &cobra.Command{
 		Use:   "wait <tsk_id|local_id>",
 		Short: "Resume a task: replay an unconfirmed submit, poll, download",
-		Args:  cobra.ExactArgs(1),
+		Example: `  pomoai task wait tsk_50d8…          # server task id
+  pomoai task wait l_8f3a…            # local record id, see "pomoai task list"
+  pomoai task wait tsk_50d8… --timeout 10m --out-dir out`,
+		Args: cobra.ExactArgs(1),
 		RunE: wrap(func(cmd *cobra.Command, args []string) error {
 			if err := w.check(); err != nil {
 				return err
@@ -635,7 +668,14 @@ func (a *app) videoCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a video (blocks until done unless --no-wait)",
-		Args:  cobra.NoArgs,
+		Long: `Create a video. Video tasks usually take minutes; the command waits and
+prints progress to stderr. --image takes an http(s) URL or asset://ID, not a
+local file. The protocol is inferred from "pomoai models --kind video" unless
+--protocol is given.`,
+		Example: `  pomoai video create --model <id> --prompt "sunrise over the sea" --duration 5 --ratio 16:9
+  pomoai video create --model <id> --prompt "the cat turns its head" --image https://example.com/cat.png
+  pomoai video create --model <id> --prompt "..." --no-wait     # then: pomoai task wait <tsk_id>`,
+		Args: cobra.NoArgs,
 		RunE: wrap(func(cmd *cobra.Command, _ []string) error {
 			if o.model == "" {
 				return usageErr("--model is required")
@@ -678,7 +718,7 @@ func (a *app) videoCreateCmd() *cobra.Command {
 		}),
 	}
 	f := cmd.Flags()
-	f.StringVar(&o.model, "model", "", "model id (see `pomoai models --kind video`)")
+	f.StringVar(&o.model, "model", "", "model id, see: pomoai models --kind video")
 	f.StringVar(&o.prompt, "prompt", "", "prompt text")
 	f.StringVar(&promptFile, "prompt-file", "", "read the prompt from a file, or - for stdin")
 	f.StringVar(&o.protocol, "protocol", "", "ark_v3|las_v1|newapi_video|openai_video|minimax_v2 (default: from /v1/models)")

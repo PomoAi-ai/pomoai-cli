@@ -1,22 +1,25 @@
 #!/usr/bin/env node
 'use strict';
-// Runs the platform binary shipped in pomoai-cli-<platform>-<arch> (an optionalDependency).
+// Runs the platform binary: bin/<platform>-<arch>/ in the release tarball, otherwise the
+// pomoai-cli-<platform>-<arch> optionalDependency of the registry package.
 const { spawnSync } = require('node:child_process');
+const fs = require('node:fs');
 const os = require('node:os');
+const path = require('node:path');
 
 const pkg = `pomoai-cli-${process.platform}-${process.arch}`;
 const exe = process.platform === 'win32' ? 'pomoai.exe' : 'pomoai';
 
-let bin;
+let bin = path.join(__dirname, `${process.platform}-${process.arch}`, exe);
 try {
-  bin = require.resolve(`${pkg}/bin/${exe}`);
+  if (!fs.existsSync(bin)) bin = require.resolve(`${pkg}/bin/${exe}`);
 } catch {
   process.stderr.write(
     `pomoai: could not find the binary package ${pkg}.\n` +
       'Either this platform is not supported (darwin/linux/win32 on x64/arm64), or optional\n' +
       'dependencies were skipped (--omit=optional, --no-optional, some pnpm/Yarn PnP setups).\n' +
-      'Reinstall with optional dependencies, or use the install script:\n' +
-      '  curl -fsSL https://raw.githubusercontent.com/PomoAi-ai/pomoai-cli/main/install.sh | sh\n',
+      'Reinstall from the release tarball, which bundles every platform:\n' +
+      '  npm i -g https://github.com/PomoAi-ai/pomoai-cli/releases/latest/download/pomoai-cli.tgz\n',
   );
   process.exit(1);
 }
